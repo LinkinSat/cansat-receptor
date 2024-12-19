@@ -1,0 +1,1 @@
+# Aquí se localiza el código para la placa receptora de datos
