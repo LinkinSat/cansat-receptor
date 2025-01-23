@@ -3,6 +3,7 @@
 #include <SPI.h>
 #include <WebServer.h>
 #include <ESP32_MySQL.h>
+#include <esp_task_wdt.h>
 
 TaskHandle_t TaskDB;
 boolean shouldSend;
@@ -34,12 +35,13 @@ WebServer server(80);
 String loRaIn = "";
 
 // Variables de los sensores
-float gpsLat = NAN;       // Latitud GPS
-float gpsLon = NAN;       // Longitud GPS
-float altitude = NAN;     // Altitud en metros
-float temperature = NAN;  // Temperatura en °C (NAN para indicar "Sin datos")
-float pressure = NAN;     // Presión en hPa
-float rads = NAN;         // Rads (esto depende del sensor que uses)
+String gpsLat;       // Latitud GPS
+String gpsLon;       // Longitud GPS
+String altitude;     // Altitud en metros
+String temperature;  // Temperatura en °C ("" para indicar "Sin datos")
+String pressure;     // Presión en hPa
+String rads;         // Rads (esto depende del sensor que uses)
+String timestamp;
 
 // Declaración de funciones
 /*void handleGet();
@@ -48,6 +50,7 @@ void parseLoRaData(String data);
 float extractValue(String data, String label);*/
 
 void setup() {
+  esp_task_wdt_init(30, false);
   Serial.begin(115200);
 
   //Configurar modo dual WiFi
@@ -150,7 +153,7 @@ void loop() {
     }
     parseLoRaData(loRaIn);  // Procesar datos tras recibidos
     //Serial.println(loRaIn);
-    Serial.println(String(gpsLat, 6) + "," + String(gpsLon, 6) + "," + String(altitude) + "," + String(temperature) + "," + String(pressure) + "," + String(rads, 6));
+    Serial.println(gpsLat + "," + gpsLon + "," + altitude + "," + temperature + "," + pressure + "," + rads + "," + timestamp);
     shouldSend = true;
     }
   loRaIn = "";  // Limpiar después de procesar
@@ -160,23 +163,23 @@ void loop() {
 void runCreateDefault() {
   ESP32_MySQL_Query query = ESP32_MySQL_Query(&conn);
   String data = "";
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".temperatura (valor DOUBLE(4,2) NOT NULL, hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".temperatura (valor DOUBLE(4,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla temperatura");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".altitud (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".altitud (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla altitud");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".presion (valor DOUBLE(6,2) NOT NULL, hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".presion (valor DOUBLE(6,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla presion");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".radiacion (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".radiacion (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla radiacion");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".gps (latitude DOUBLE(9,6) NOT NULL, longitude DOUBLE(9,6), hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".gps (latitude DOUBLE(9,6) NOT NULL, longitude DOUBLE(9,6), hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla gps");
   }
@@ -186,23 +189,23 @@ void runInsertData() {
   ESP32_MySQL_Query query = ESP32_MySQL_Query(&conn);
   String data = "";
   //Inserta temperatura
-  data = "INSERT INTO " + MYSQL_DATABASE + ".temperatura(valor) VALUES(" + String(temperature, 2) + ")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".temperatura(valor,hora) VALUES(" + temperature + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos temperatura");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".presion(valor) VALUES(" + String(pressure, 2) + ")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".presion(valor,hora) VALUES(" + pressure + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos presion");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".radiacion(valor) VALUES(" + String(rads, 2) + ")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".radiacion(valor,hora) VALUES(" + rads + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos radiacion");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".altitud(valor) VALUES(" + String(altitude, 2) + ")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".altitud(valor,hora) VALUES(" + altitude + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos altitud");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".gps(latitude,longitude) VALUES(" + String(gpsLat, 6) + "," + String(gpsLon, 6) + ")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".gps(latitude,longitude,hora) VALUES(" + gpsLat + "," + gpsLon + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos gps");
   }
@@ -215,11 +218,14 @@ void parseLoRaData(String data) {
   temperature = extractValue(data, "temp:");
   pressure = extractValue(data, "pressure:");
   rads = extractValue(data, "rads:");
+  timestamp = extractValue(data, "timestamp:");
+  timestamp.replace(";", ":");
+  timestamp.replace("_", " ");
 }
 
-float extractValue(String data, String label) {
+String extractValue(String data, String label) {
   int startIndex = data.indexOf(label);
-  if (startIndex == -1) return NAN;  // No encontrado
+  if (startIndex == -1) return "";  // No encontrado
 
   startIndex += label.length();
   int endIndex = data.indexOf(",", startIndex);
@@ -227,7 +233,7 @@ float extractValue(String data, String label) {
 
   String valueString = data.substring(startIndex, endIndex);
   valueString.trim();            // Elimina espacios extra
-  return valueString.toFloat();  // Convertir a float
+  return valueString;  // Convertir a float
 }
 
 void handleGetMain() {
@@ -250,11 +256,11 @@ String prepareHTML() {
   ptr += "<script>window.setInterval(()=>{fetch(\"/api/data\").then(e=>e.json()).then(e=>{document.getElementById(\"gps\").innerText=e.gps.lat+\" \"+e.gps.lon,document.getElementById(\"alt\").innerText=e.alt,document.getElementById(\"temp\").innerText=e.temp,document.getElementById(\"press\").innerText=e.press,document.getElementById(\"rads\").innerText=e.rads})},500);</script>\n</head><body>\n";
 
   ptr += "<h1>Datos de los Sensores</h1>\n";
-  ptr += "<div class=\"sensor-item\"><h3>GPS</h3><p id=\"gps\" class=\"sensor-value\">" + (isnan(gpsLat) || isnan(gpsLon) ? "Sin datos" : "Lat: " + String(gpsLat) + ", Lon: " + String(gpsLon)) + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Altitud</h3><p id=\"alt\" class=\"sensor-value\">" + (isnan(altitude) ? "Sin datos" : String(altitude) + " m") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Temperatura</h3><p id=\"temp\" class=\"sensor-value\">" + (isnan(temperature) ? "Sin datos" : String(temperature) + " C") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Presion</h3><p id=\"press\" class=\"sensor-value\">" + (isnan(pressure) ? "Sin datos" : String(pressure) + " hPa") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Rads</h3><p id=\"rads\" class=\"sensor-value\">" + (isnan(rads) ? "Sin datos" : String(rads) + " rads") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>GPS</h3><p id=\"gps\" class=\"sensor-value\">" + (gpsLat != "" || gpsLon != "") ? "Sin datos" : "Lat: " + gpsLat + ", Lon: " + gpsLon + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Altitud</h3><p id=\"alt\" class=\"sensor-value\">" + (altitude != "" ? "Sin datos" : altitude + " m") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Temperatura</h3><p id=\"temp\" class=\"sensor-value\">" + (temperature != "" ? "Sin datos" : temperature + " C") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Presion</h3><p id=\"press\" class=\"sensor-value\">" + (pressure != "" ? "Sin datos" : pressure + " hPa") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Rads</h3><p id=\"rads\" class=\"sensor-value\">" + (rads != "" ? "Sin datos" : rads + " rads") + "</p></div>\n";
 
   ptr += "</body></html>";
   return ptr;
@@ -263,13 +269,13 @@ String prepareHTML() {
 String prepareJSONData() {
   String ptr = "{\n";
   ptr += "  \"gps\": {";
-  ptr += "\n    \"lat\": \"" + (isnan(gpsLat) ? "Sin datos" : String(gpsLat, 6)) + "\",\n";
-  ptr += "    \"lon\": \"" + (isnan(gpsLon) ? "Sin datos" : String(gpsLon, 6)) + "\"\n";
+  ptr += "\n    \"lat\": \"" + (gpsLat != "" ? "Sin datos" : gpsLat) + "\",\n";
+  ptr += "    \"lon\": \"" + (gpsLon != "" ? "Sin datos" : gpsLon) + "\"\n";
   ptr += "\n  },\n";
-  ptr += "  \"alt\": \"" + (isnan(altitude) ? "Sin datos" : String(altitude) + " m") + "\",\n";
-  ptr += "  \"temp\": \"" + (isnan(temperature) ? "Sin datos" : String(temperature) + " C") + "\",\n";
-  ptr += "  \"press\": \"" + (isnan(pressure) ? "Sin datos" : String(pressure) + " hPa") + "\",\n";
-  ptr += "  \"rads\": \"" + (isnan(rads) ? "Sin datos" : String(rads) + " rads") + "\"\n";
+  ptr += "  \"alt\": \"" + (altitude != "" ? "Sin datos" : altitude + " m") + "\",\n";
+  ptr += "  \"temp\": \"" + (temperature != "" ? "Sin datos" : temperature + " C") + "\",\n";
+  ptr += "  \"press\": \"" + (pressure != "" ? "Sin datos" : pressure + " hPa") + "\",\n";
+  ptr += "  \"rads\": \"" + (rads != "" ? "Sin datos" : rads + " rads") + "\"\n";
   ptr += "}";
 
   return ptr;
