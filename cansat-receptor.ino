@@ -163,23 +163,23 @@ void loop() {
 void runCreateDefault() {
   ESP32_MySQL_Query query = ESP32_MySQL_Query(&conn);
   String data = "";
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".temperatura (valor DOUBLE(4,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".temperatura (valor DOUBLE(4,2) NOT NULL, hora TIMESTAMP(3) UNIQUE DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla temperatura");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".altitud (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".altitud (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) UNIQUE DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla altitud");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".presion (valor DOUBLE(6,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".presion (valor DOUBLE(6,2) NOT NULL, hora TIMESTAMP(3) UNIQUE DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla presion");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".radiacion (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".radiacion (valor DOUBLE(8,2) NOT NULL, hora TIMESTAMP(3) UNIQUE DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla radiacion");
   }
-  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".gps (latitude DOUBLE(9,6) NOT NULL, longitude DOUBLE(9,6), hora TIMESTAMP(3) DEFAULT UTC_TIMESTAMP);";
+  data = "CREATE TABLE IF NOT EXISTS " + MYSQL_DATABASE + ".gps (latitude DOUBLE(9,6) NOT NULL, longitude DOUBLE(9,6), hora TIMESTAMP(3) UNIQUE DEFAULT UTC_TIMESTAMP);";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al crear la tabla gps");
   }
@@ -189,23 +189,23 @@ void runInsertData() {
   ESP32_MySQL_Query query = ESP32_MySQL_Query(&conn);
   String data = "";
   //Inserta temperatura
-  data = "INSERT INTO " + MYSQL_DATABASE + ".temperatura(valor,hora) VALUES(" + temperature + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".temperatura(valor,hora) VALUES(" + temperature + "," + (timestamp.startsWith("2000-1-1") ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos temperatura");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".presion(valor,hora) VALUES(" + pressure + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".presion(valor,hora) VALUES(" + pressure + "," + (timestamp.startsWith("2000-1-1") ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos presion");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".radiacion(valor,hora) VALUES(" + rads + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".radiacion(valor,hora) VALUES(" + rads + "," + (timestamp.startsWith("2000-1-1") ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos radiacion");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".altitud(valor,hora) VALUES(" + altitude + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".altitud(valor,hora) VALUES(" + altitude + "," + (timestamp.startsWith("2000-1-1") ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos altitud");
   }
-  data = "INSERT INTO " + MYSQL_DATABASE + ".gps(latitude,longitude,hora) VALUES(" + gpsLat + "," + gpsLon + "," + (timestamp == "2000-0-0 0:0:0.0" ? "DEFAULT" : "'"+timestamp + "'") +")";
+  data = "INSERT INTO " + MYSQL_DATABASE + ".gps(latitude,longitude,hora) VALUES(" + gpsLat + "," + gpsLon + "," + (timestamp.startsWith("2000-1-1") ? "DEFAULT" : "'"+timestamp + "'") +")";
   if (!query.execute(data.c_str())) {
     Serial.println("Error al subir datos gps");
   }
