@@ -57,7 +57,7 @@ void setup() {
   WiFi.mode(WIFI_AP_STA);
 
   //Configurar punto de acceso
-  IPAddress Ip(192, 168, 1, 69);
+  IPAddress Ip(192, 168, 69, 69);
   IPAddress NMask(255, 255, 255, 0);
   WiFi.softAPConfig(Ip, Ip, NMask);
 
