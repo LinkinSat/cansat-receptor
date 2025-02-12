@@ -9,7 +9,7 @@ TaskHandle_t TaskDB;
 boolean shouldSend;
 
 //Base de datos
-#define MYSQL_HOSTNAME "db.pablohacker.cf"
+#define MYSQL_HOSTNAME "panel.akex.dev"
 #define MYSQL_PORT 3306
 #define MYSQL_USER "cansat"
 #define MYSQL_PASS "LinkinSat"
@@ -256,11 +256,11 @@ String prepareHTML() {
   ptr += "<script>window.setInterval(()=>{fetch(\"/api/data\").then(e=>e.json()).then(e=>{document.getElementById(\"gps\").innerText=e.gps.lat+\" \"+e.gps.lon,document.getElementById(\"alt\").innerText=e.alt,document.getElementById(\"temp\").innerText=e.temp,document.getElementById(\"press\").innerText=e.press,document.getElementById(\"rads\").innerText=e.rads})},500);</script>\n</head><body>\n";
 
   ptr += "<h1>Datos de los Sensores</h1>\n";
-  ptr += "<div class=\"sensor-item\"><h3>GPS</h3><p id=\"gps\" class=\"sensor-value\">" + (gpsLat != "" || gpsLon != "") ? "Sin datos" : "Lat: " + gpsLat + ", Lon: " + gpsLon + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Altitud</h3><p id=\"alt\" class=\"sensor-value\">" + (altitude != "" ? "Sin datos" : altitude + " m") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Temperatura</h3><p id=\"temp\" class=\"sensor-value\">" + (temperature != "" ? "Sin datos" : temperature + " C") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Presion</h3><p id=\"press\" class=\"sensor-value\">" + (pressure != "" ? "Sin datos" : pressure + " hPa") + "</p></div>\n";
-  ptr += "<div class=\"sensor-item\"><h3>Rads</h3><p id=\"rads\" class=\"sensor-value\">" + (rads != "" ? "Sin datos" : rads + " rads") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>GPS</h3><p id=\"gps\" class=\"sensor-value\">" + (gpsLat == "" || gpsLon == "") ? "Sin datos" : "Lat: " + gpsLat + ", Lon: " + gpsLon + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Altitud</h3><p id=\"alt\" class=\"sensor-value\">" + (altitude == "" ? "Sin datos" : altitude + " m") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Temperatura</h3><p id=\"temp\" class=\"sensor-value\">" + (temperature == "" ? "Sin datos" : temperature + " C") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Presion</h3><p id=\"press\" class=\"sensor-value\">" + (pressure == "" ? "Sin datos" : pressure + " hPa") + "</p></div>\n";
+  ptr += "<div class=\"sensor-item\"><h3>Rads</h3><p id=\"rads\" class=\"sensor-value\">" + (rads == "" ? "Sin datos" : rads + " rads") + "</p></div>\n";
 
   ptr += "</body></html>";
   return ptr;
@@ -269,13 +269,13 @@ String prepareHTML() {
 String prepareJSONData() {
   String ptr = "{\n";
   ptr += "  \"gps\": {";
-  ptr += "\n    \"lat\": \"" + (gpsLat != "" ? "Sin datos" : gpsLat) + "\",\n";
-  ptr += "    \"lon\": \"" + (gpsLon != "" ? "Sin datos" : gpsLon) + "\"\n";
+  ptr += "\n    \"lat\": \"" + (gpsLat == "0" ? "Sin datos" : gpsLat) + "\",\n";
+  ptr += "    \"lon\": \"" + (gpsLon == "0" ? "Sin datos" : gpsLon) + "\"\n";
   ptr += "\n  },\n";
-  ptr += "  \"alt\": \"" + (altitude != "" ? "Sin datos" : altitude + " m") + "\",\n";
-  ptr += "  \"temp\": \"" + (temperature != "" ? "Sin datos" : temperature + " C") + "\",\n";
-  ptr += "  \"press\": \"" + (pressure != "" ? "Sin datos" : pressure + " hPa") + "\",\n";
-  ptr += "  \"rads\": \"" + (rads != "" ? "Sin datos" : rads + " rads") + "\"\n";
+  ptr += "  \"alt\": \"" + (altitude == "" ? "Sin datos" : altitude + " m") + "\",\n";
+  ptr += "  \"temp\": \"" + (temperature == "" ? "Sin datos" : temperature + " C") + "\",\n";
+  ptr += "  \"press\": \"" + (pressure == "" ? "Sin datos" : pressure + " hPa") + "\",\n";
+  ptr += "  \"rads\": \"" + (rads == "" ? "Sin datos" : rads + " rads") + "\"\n";
   ptr += "}";
 
   return ptr;
