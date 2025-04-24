@@ -7,7 +7,7 @@
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26 
-#define LORA_FREQ 433E6
+#define LORA_FREQ 4459e5
 #define LORA_SCK 5
 #define LORA_MISO 19
 #define LORA_MOSI 27
