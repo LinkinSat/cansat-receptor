@@ -21,7 +21,7 @@ ESP32_MySQL_Connection conn((Client *)&client);
 #define LORA_SS 18
 #define LORA_RST 14
 #define LORA_DIO0 26
-#define LORA_FREQ 433E6
+#define LORA_FREQ 4459E5
 #define LORA_SCK 5
 #define LORA_MISO 19
 #define LORA_MOSI 27
@@ -88,6 +88,7 @@ void setup() {
     Serial.println("Fallo en el inicio del LoRa");
   } else {
     Serial.println("LoRa iniciado correctamente");
+    LoRa.enableCrc();
   }
 }
 
@@ -147,6 +148,7 @@ void loop() {
     while (LoRa.available()) {
       loRaIn += (char)LoRa.read();  // Leer correctamente
     }
+    if(!loRaIn.startsWith("SDF_")) return;
     parseLoRaData(loRaIn);  // Procesar datos tras recibidos
     //Serial.println(loRaIn);
     Serial.println(altitude + "," + temperature + "," + pressure);
